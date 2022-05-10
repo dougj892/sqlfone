@@ -2,12 +2,14 @@ import streamlit as st
 import openai
 import sqlite3
 import pandas as pd
+import re
 
 openai.api_key = st.secrets['OPENAI_API_KEY']
 # look at the title of the csv docs in the output folder to find a good model
 # model_string = 'curie:ft-fab-data-2022-04-21-03-27-05'
 model_string = 'curie:ft-fab-data-2022-05-06-06-26-14'
-
+engine = model_string.split(':')[0]
+date_trained = re.search(r'\d{4}-\d{2}-\d{2}', model_string).group()
 
 def check_password():
     """Returns `True` if the user had the correct password."""
@@ -51,7 +53,19 @@ def execute_sql(sql_command):
         return None
 
 if check_password():
-    st.title("SQLfone")
+    st.title("Text to SQL translator")
+    # st.write("**Engine**:" + engine, "; **Date trained**:" + date_trained)
+    # read contents of instructions.md
+    with open('instructions.md') as f:
+        instructions = f.read()
+    st.write(instructions)
+    
+    # get list of models
+    fts = openai.FineTune.list()
+    all_models = [ft['fine_tuned_model'] for ft in fts['data']]
+    all_models.reverse()
+    model = st.selectbox('Choose fine-tuned model (curie:ft-fab-data-2022-05-06-06-26-14 recommended):', all_models)
+
     text = st.text_input("Enter question that you would like translated into SQL:")
 
     if text:
