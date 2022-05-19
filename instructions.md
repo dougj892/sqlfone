@@ -8,4 +8,4 @@
 
 1. This dummy app just uses a small subset of the original census data to test whether the query actually runs. 
 2. Please record details of which natural language queries didn't work.
-3. The model 'curie:ft-fab-data-2022-05-06-06-26-14' seems to work the best despite the it uses a less powerful engine (curie) and a smaller training dataset than the most recent model.
+3. For testing purposes, I allow you to select any of the models I have trained but I recommend you use the latest one.
