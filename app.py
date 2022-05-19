@@ -63,6 +63,5 @@ if check_password():
             st.write("The codex SQL worked! :smiley:")
         else:
             st.write("The codex SQL failed to execute :thumbsdown:")
-        logging.warning('prompt: ' + text + '\n' + 'gpt_sql: ' + gpt_sql + '\n' + 'codex_sql: ' + codex_sql)
-
+        logging.warning('prompt: ' + text + '\n' + 'model: ' + model + '\n' + 'gpt_sql: ' + gpt_sql + '\n' + 'codex_sql: ' + codex_sql)
 
