@@ -3,6 +3,8 @@ import openai
 import sqlite3
 import pandas as pd
 import logging
+import requests
+import uuid
 from helper_funs import check_password, gen_codex_prompt2, execute_sql
 
 STOP_CODE='###'
@@ -64,4 +66,37 @@ if check_password():
         else:
             st.write("The codex SQL failed to execute :thumbsdown:")
         logging.warning('prompt: ' + text + '\n' + 'model: ' + model + '\n' + 'gpt_sql: ' + gpt_sql + '\n' + 'codex_sql: ' + codex_sql)
+        
+        # replace all double quotes with single quotes so that it doesn't break the json formatting
+        gpt_sql2 = gpt_sql.replace('"',"'")
+        codex_sql2 = codex_sql.replace('"',"'")
+        
+        reverse_codex_sql = gpt_sql2 + "\n" + "# Explanation of what the code does\n"
+
+        response = openai.Completion.create(
+            engine="code-davinci-002",
+            prompt=reverse_codex_sql,
+            temperature=0,
+            max_tokens=60,
+            top_p=1.0,
+            frequency_penalty=0.0,
+            presence_penalty=0.0,
+            stop='###'
+        )
+        "Converting the SQL from the fine-tuned model back to text via CODEX yields:"
+        st.text(response['choices'][0]['text'])
+        
+        # Generate a unique ID since dynamodb requires a unique id for all items
+        id = str(uuid.uuid4())
+        
+        # not sure if this header stuff is necessary, but copied from the AWS http API tutorial
+        headers = {'Content-Type': 'application/json'}
+             
+        # create string payload which will be loaded by the lambda function using json.loads
+        item = f'{{"id": "{id}", "model": "{model}", "text": "{text}", "ft_sql": "{gpt_sql2}", "codex_sql": "{codex_sql2}"}}'
+        # st.write(item)
+        
+        # Call the AWS API I created to log the item to dynamodb and post the results
+        r = requests.post('https://nlymbamxbl.execute-api.ap-southeast-2.amazonaws.com/items', headers=headers, data=item)
+        st.write(r.text)
 
